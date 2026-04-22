@@ -11,7 +11,7 @@ If you find this fork useful, please also star the upstream repository.
 ## Install
 
 ```bash
-git clone https://github.com/<your-github>/paper-search ~/.claude/skills/paper-search
+git clone https://github.com/TCMzhoutong/paper-search ~/.claude/skills/paper-search
 ```
 
 Then fill in `config.md` locally with your own keys/email/hosts (see the template inside — do not commit real values back).
