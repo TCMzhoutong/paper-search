@@ -8,18 +8,118 @@ This product is a derivative work of:
     Copyright (c) 2026 Chengmingyue
     Licensed under the MIT License
 
-The original SKILL.md orchestration layout, the per-source RIS/XML merge
-pipeline (scripts/build_refs.py), the CDP proxy (scripts/cdp-proxy.mjs),
-and the reference docs under references/ (api-cookbook.md, cdp-api.md,
-query-plan.md, cnki-delegation.md, wos-delegation.md, and others) were
-adapted from the upstream project and remain under its MIT license.
+=============================================================================
+Files inherited from the upstream project (retained, with modifications
+noted below; remain under the upstream MIT license)
+=============================================================================
 
-Modifications in this fork include (non-exhaustive):
-- Renamed skill and all internal references from `academic-search`
-  to `paper-search`; environment variables renamed accordingly
-  (`ACADEMIC_SEARCH_*` -> `PAPER_SEARCH_*`).
-- Personal configuration (API keys, email, institutional VPN hosts)
-  stripped from `config.md`; the file ships as a sanitized template.
-- Added LICENSE, NOTICE, and README documenting attribution.
+- SKILL.md
+  The original file authored upstream. This fork rewrites it as a pure
+  orchestration layer (upstream ~323 lines -> fork ~173 lines): removes the
+  "search philosophy" preamble, removes the preflight `check-deps.sh`
+  section, replaces the platform selection table with a "default-parallel /
+  on-demand-join" matrix, renames the skill (`academic-search` ->
+  `paper-search`), adds a personal-config reference, adds CNKI/WoS rows,
+  and adds a three-file deliverable contract
+  (`paper_raw/refs.ris` + `summary.md` + optional PDFs).
 
-A copy of the MIT License text is provided in the LICENSE file.
+- scripts/cdp-proxy.mjs
+  Byte-identical to upstream apart from two comment/log strings renamed
+  from `academic-search` to `paper-search`.
+
+- references/api-cookbook.md
+  Upstream base. This fork extends it with stricter conventions
+  (`ti:` + `abs:` as default on arXiv, explicit `datetype=pdat` date
+  ranges on PubMed), more date-range examples, and a pointer to
+  `scripts/download_arxiv.py` for batch PDF download.
+
+- references/cdp-api.md
+  Upstream base. This fork prepends a warning about the chrome-devtools
+  MCP `evaluate_script` `args` field (must be element uids, not generic
+  literals) and updates the proxy start-up path.
+
+- references/site-patterns/arxiv.org.md
+  Upstream base. This fork appends 2026-04-07 observations on Varnish
+  429/503 cooldowns (60-90 s) and recommends `submittedDate:[...]` range
+  syntax for time-window queries.
+
+- references/site-patterns/scholar.google.com.md
+  Upstream base. This fork adds a "search expression construction" section
+  (nested boolean / no field prefixes / phrase quoting) with a concrete
+  multi-concept example, and a stricter "time filter" section describing
+  the lack of reliable publication-month metadata.
+
+- references/site-patterns/dl.acm.org.md
+- references/site-patterns/ieeexplore.ieee.org.md
+- references/site-patterns/paperswithcode.com.md
+- references/site-patterns/pubmed.ncbi.nlm.nih.gov.md
+- references/site-patterns/semanticscholar.org.md
+  Unchanged from upstream (only CRLF/LF normalization after the
+  Windows checkout).
+
+=============================================================================
+Files removed from the upstream project in this fork
+=============================================================================
+
+- `Makefile`, `scripts/check-deps.sh`, `scripts/release-test.sh`,
+  `scripts/self-test.sh` - upstream build/test harness; not used here.
+- `agents/openai.yaml` - OpenAI-agent adapter; out of scope for this fork.
+- `assets/logo.png`, `assets/academic-search-framework.png` - upstream
+  branding assets.
+- `docs/skill-usage-comparison.md`, `wechat-promo.md` - upstream
+  marketing / case-study copy.
+- `README.md`, `README.en.md` - replaced with a fresh README (EN + zh-CN)
+  tailored to this fork, including an explicit Acknowledgements section.
+- `references/metadata-schema.md`, `references/venue-rankings.md` -
+  upstream's output-schema / ranking spec; superseded here by the
+  `paper_raw/` deliverable contract in `SKILL.md` and the query-plan
+  system in `references/query-plan.md`.
+- `references/site-patterns/cnki.net.md` - upstream's CNKI site-pattern
+  note; this fork replaces it with a full CNKI pipeline (see below).
+
+=============================================================================
+Files added in this fork (not derived from upstream)
+=============================================================================
+
+Authored from scratch. Original work, Copyright (c) 2026 Tong Zhou,
+released under the same MIT License as the rest of the repository.
+
+- `LICENSE`, `NOTICE`, `README.md`, `README.zh-CN.md`
+- `config.md` - sanitized template for personal config
+  (API keys / email / institutional VPN hosts).
+- `data/jcr.db` (~16 MB) - SQLite database of JCR metadata used by
+  `scripts/journal_lookup.py`.
+- `references/query-plan.md` - 4-phase structured query-plan schema and
+  per-DB expression syntax cheat-sheet.
+- `references/parallel.md` - rules for parallelising API-database calls
+  (arXiv / S2 / PubMed) while keeping browser-driven databases
+  (CNKI / WoS / GS) strictly serial.
+- `references/cnki-advanced-search.md`,
+  `references/cnki-delegation.md`,
+  `references/cnki-download.md`
+  - full CNKI (China National Knowledge Infrastructure) pipeline:
+    expression-language spec, delegation contract, `dm8/API/GetExport`
+    RIS export flow, and per-record PDF download UI sequence.
+- `references/wos-delegation.md`, `references/wos-download.md` -
+  Web of Science pipeline: institutional-VPN routing, advanced search,
+  `Export -> Plain text` flow, Unpaywall-based open-access PDF lookup.
+- `scripts/build_refs.py` (~664 lines) - cross-source RIS merger;
+  reads `paper_raw/_tmp/{arxiv.xml, s2.json, pubmed.xml, cnki.ris,
+  wos.txt, ...}`, cross-source dedupes (DOI > arXiv ID > WoS ID >
+  title+year fuzzy), emits the final `paper_raw/refs.ris` + `summary.md`.
+- `scripts/expand_queries.py` (~249 lines) - validator / logger for the
+  4-phase query plan described in `references/query-plan.md`.
+- `scripts/download_arxiv.py` (~79 lines) - batch PDF downloader that
+  parses the Atom XML returned by arXiv and respects the 3 s throttle.
+- `scripts/journal_lookup.py` (~141 lines) - reads `data/jcr.db` and
+  returns JCR / CAS zone / impact factor for a given journal name or
+  ISSN, used by `build_refs.py` when materialising `summary.md`.
+- `scripts/wos_oa_download.py` (~95 lines) - queries Unpaywall per DOI
+  and downloads the open-access PDF when available.
+- `.gitignore` additions: `__pycache__/`, `*.pyc`, `.env`, `.env.*`,
+  `config.local.md`, `paper_raw/`.
+
+=============================================================================
+
+A copy of the MIT License text (covering both the upstream code and the
+additions in this fork) is provided in the `LICENSE` file.
