@@ -1,0 +1,25 @@
+paper-search
+Copyright (c) 2026 Tong Zhou
+
+This product is a derivative work of:
+
+    academic-search
+    https://github.com/ustc-ai4science/academic-search
+    Copyright (c) 2026 Chengmingyue
+    Licensed under the MIT License
+
+The original SKILL.md orchestration layout, the per-source RIS/XML merge
+pipeline (scripts/build_refs.py), the CDP proxy (scripts/cdp-proxy.mjs),
+and the reference docs under references/ (api-cookbook.md, cdp-api.md,
+query-plan.md, cnki-delegation.md, wos-delegation.md, and others) were
+adapted from the upstream project and remain under its MIT license.
+
+Modifications in this fork include (non-exhaustive):
+- Renamed skill and all internal references from `academic-search`
+  to `paper-search`; environment variables renamed accordingly
+  (`ACADEMIC_SEARCH_*` -> `PAPER_SEARCH_*`).
+- Personal configuration (API keys, email, institutional VPN hosts)
+  stripped from `config.md`; the file ships as a sanitized template.
+- Added LICENSE, NOTICE, and README documenting attribution.
+
+A copy of the MIT License text is provided in the LICENSE file.
